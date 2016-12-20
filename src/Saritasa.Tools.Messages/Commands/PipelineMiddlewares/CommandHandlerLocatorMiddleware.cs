@@ -75,21 +75,33 @@ namespace Saritasa.Tools.Messages.Commands.PipelineMiddlewares
         /// </summary>
         private void Init()
         {
-            // precache all types with command handlers
-            commandHandlers = assemblies.SelectMany(a => a.GetTypes())
-                .Where(t =>
-                    HandlerSearchMethod == HandlerSearchMethod.ClassAttribute ?
-                        t.GetTypeInfo().GetCustomAttribute<CommandHandlersAttribute>() != null :
-                        t.Name.EndsWith("Handlers"))
-                .SelectMany(t => t.GetTypeInfo().GetMethods())
-                .Where(m => m.Name.StartsWith(HandlerPrefix))
-                .ToArray();
-            if (!commandHandlers.Any())
+            try
             {
-                var assembliesStr = string.Join(",", assemblies.Select(a => a.FullName));
-                InternalLogger.Warn($"Cannot find command handlers in assemblie(-s) {assembliesStr}",
+
+                // precache all types with command handlers
+                commandHandlers = assemblies.SelectMany(a => a.GetTypes())
+                    .Where(t =>
+                        HandlerSearchMethod == HandlerSearchMethod.ClassAttribute
+                            ? t.GetTypeInfo().GetCustomAttribute<CommandHandlersAttribute>() != null
+                            : t.Name.EndsWith("Handlers"))
+                    .SelectMany(t => t.GetTypeInfo().GetMethods())
+                    .Where(m => m.Name.StartsWith(HandlerPrefix))
+                    .ToArray();
+
+
+                if (!commandHandlers.Any())
+                {
+                    var assembliesStr = string.Join(",", assemblies.Select(a => a.FullName));
+                    InternalLogger.Warn($"Cannot find command handlers in assemblie(-s) {assembliesStr}",
+                        nameof(CommandHandlerLocatorMiddleware));
+                }
+            }
+            catch (ReflectionTypeLoadException ex)
+            {
+                InternalLogger.Error($"Cannot find command handlers in assemblie(-s)" + ex.GetBaseException().Message + Environment.NewLine + ex.GetBaseException().StackTrace,
                     nameof(CommandHandlerLocatorMiddleware));
             }
+
         }
 
         /// <inheritdoc />

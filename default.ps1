@@ -22,6 +22,7 @@ $script:Version = '0.0.0'
 
 $packages = @(
     'Saritasa.Tools.Common'
+    'Saritasa.Tools.Configuration'
     'Saritasa.Tools.Domain'
     'Saritasa.Tools.Ef6'
     'Saritasa.Tools.EfCore1'
